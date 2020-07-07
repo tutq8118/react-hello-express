@@ -1,10 +1,6 @@
 import React, { Component } from 'react';
 
 class BookList extends Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     return (
         <div className="col-lg-3 col-md-4 col-sm-6 mb-4">
