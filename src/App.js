@@ -45,12 +45,12 @@ class App extends Component {
             {books.length > 0 &&
               books.map((item, index) => {
                 return (
-                  <Col key={index} span={6}>
+                  <Col key={index} span={24} sm={12} md={6}>
                     <Card hoverable cover={<img alt={item.title} src={item.coverUrl} />}>
                       <Meta title={item.title} description={item.desc} />
-                      <Button type="primary" shape="round" className="mt-2">
-                        Add to cart
-                      </Button>
+                      <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round">
+                        <span>Add to cart</span>
+                      </button>
                     </Card>
                   </Col>
                 );
