@@ -25,7 +25,7 @@ class App extends Component {
     };
   }
   async componentDidMount() {
-    var booksAPI = await axios.get('http://localhost:8000/api/books');
+    var booksAPI = await axios.get('https://tutq-hello-express.glitch.me/api/books');
     this.setState({
       books: booksAPI.data,
       allBooks: booksAPI.data
