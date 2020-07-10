@@ -14,6 +14,7 @@ const { Meta } = Card;
 const { Title } = Typography;
 
 const axios = require('axios').default;
+const REACT_APP_API_SERVER = process.env.REACT_APP_API_SERVER;
 class App extends Component {
   constructor(props) {
     super(props);
@@ -25,17 +26,19 @@ class App extends Component {
     };
   }
   async componentDidMount() {
-    var booksAPI = await axios.get('https://tutq-hello-express.glitch.me/api/books');
+    var booksAPI = await axios.get(`${REACT_APP_API_SERVER}api/books`);
     this.setState({
       books: booksAPI.data,
-      allBooks: booksAPI.data
+      allBooks: booksAPI.data,
     });
   }
 
   handleSearch = () => {
     const q = this.inputElement.current.value;
-    console.log(this.inputElement.current);
     const { books, allBooks } = this.state;
+    if (!allBooks) {
+      return;
+    }
     const filteredBooks = allBooks.filter((item) => {
       return item.title.toLowerCase().includes(q.toLowerCase()) === true;
     });
