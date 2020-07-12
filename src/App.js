@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useEffect } from 'react';
 import 'bootstrap/scss/bootstrap.scss';
 import 'antd/dist/antd.css';
 import './App.scss';
@@ -24,18 +24,23 @@ class App extends Component {
     this.state = {
       books: [],
     };
+    console.log('contructor');
   }
-  async componentDidMount() {
-    var booksAPI = await axios.get(`${REACT_APP_API_SERVER}api/books`);
-    this.setState({
-      books: booksAPI.data,
-      allBooks: booksAPI.data,
-    });
+  componentDidMount() {
+    // var booksAPI = await axios.get(`${REACT_APP_API_SERVER}api/books`);
+    axios.get(`${REACT_APP_API_SERVER}api/books`).then(booksAPI => {
+      this.setState({
+        books: booksAPI.data,
+        allBooks: booksAPI.data,
+      });  
+    }).catch(error => console.log("fail to fetch data", error));
+    console.log('component did mount');
+    
   }
 
   handleSearch = () => {
     const q = this.inputElement.current.value;
-    const { books, allBooks } = this.state;
+    const { allBooks } = this.state;
     if (!allBooks) {
       return;
     }
@@ -48,6 +53,7 @@ class App extends Component {
   };
 
   render() {
+    console.log('render');
     const { books } = this.state;
     return (
       <div className="App">
@@ -62,11 +68,11 @@ class App extends Component {
               <NavMenu extraClass="flex-grow-1" />
               <SearchBox>
                 <div className="form-group">
-                  <input ref={this.inputElement} className="form-control" type="text" required name="q" placeholder="Type a book name..." onChange={this.handleSearch} onKeyUp={this.handleSearch} />
+                  <input ref={this.inputElement} className="form-control" type="text" required name="q" placeholder="Type a book name..." onKeyPress={this.handleSearch} />
                 </div>
-                {/* <button ref={this.buttonElement} className="btn btn-primary">
+                <button ref={this.buttonElement} className="btn btn-primary" onClick={this.handleSearch}>
                   Search
-                </button> */}
+                </button>
               </SearchBox>
               <NavLogin />
               <MiniCart />
@@ -102,11 +108,11 @@ class App extends Component {
                   </Col>
                 );
               })}
-            {books.length === 0 && (
+            {/* {books.length === 0 && (
               <div className="col-12">
                 <div className="alert alert-info text-center">No item found</div>
               </div>
-            )}
+            )} */}
           </Row>
         </div>
       </div>
