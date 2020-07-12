@@ -5,10 +5,16 @@ import './App.scss';
 
 import NavMenu from './components/NavMenu';
 import SearchBox from './components/SearchBox';
-import NavLogin from './components/NavLogin';
+import LoginForm from './components/LoginForm';
 import MiniCart from './components/MiniCart';
 
 import { Card, Row, Col, Alert, Typography } from 'antd';
+import {
+  BrowserRouter as Router,
+  Route,
+  NavLink
+} from "react-router-dom";
+
 
 const { Meta } = Card;
 const { Title } = Typography;
@@ -56,66 +62,62 @@ class App extends Component {
     console.log('render');
     const { books } = this.state;
     return (
-      <div className="App">
-        <nav className="navbar navbar-expand-lg navbar-light bg-light mb-3">
-          <div className="container">
-            <h1 className="h2">
-              <a className="navbar-brand" href="#">
-                HelloExpress
-              </a>
-            </h1>
-            <div className="collapse navbar-collapse justify-content-between">
-              <NavMenu extraClass="flex-grow-1" />
-              <SearchBox>
-                <div className="form-group">
-                  <input ref={this.inputElement} className="form-control" type="text" required name="q" placeholder="Type a book name..." onKeyPress={this.handleSearch} />
+      <Router >
+        <div className="App">
+          <nav className="navbar navbar-expand-lg navbar-light bg-light mb-3">
+            <div className="container">
+              <h1 className="h2">
+                <NavLink className="navbar-brand" to="/" exact>HelloExpress</NavLink>
+              </h1>
+              <div className="collapse navbar-collapse justify-content-between">
+                <ul className="navbar-nav flex-grow-1">
+                  <li className="nav-item">
+                      <NavLink className="nav-link" to="/books" exact>Books</NavLink>
+                    </li>
+                  </ul>
+                <SearchBox>
+                  <div className="form-group">
+                    <input ref={this.inputElement} className="form-control" type="text" required name="q" placeholder="Type a book name..." onKeyPress={this.handleSearch} />
+                  </div>
+                  <button ref={this.buttonElement} className="btn btn-primary" onClick={this.handleSearch}>
+                    Search
+                  </button>
+                </SearchBox>
+                <div className="navbar__login ml-lg-3">
+                  <NavLink className="navbar__login-link" to="/login" exact>Login</NavLink>
                 </div>
-                <button ref={this.buttonElement} className="btn btn-primary" onClick={this.handleSearch}>
-                  Search
-                </button>
-              </SearchBox>
-              <NavLogin />
-              <MiniCart />
-            </div>
-          </div>
-        </nav>
-
-        {/* <div className="container">
-          <h2 className="mb-3">List Books - Bootstrap 4</h2>
-          <div className="book-cards mb-5">
-            <div className="row">
-              {books.length > 0 &&
-                books.map((item, index) => {
-                  return <BookList key={index} item={item} />;
-                })}
-            </div>
-          </div>
-        </div> */}
-
-        <div className="container">
-          <Title level={2}>List Books - Ant Design</Title>
-          <Row gutter={30}>
-            {books.length > 0 &&
-              books.map((item, index) => {
-                return (
-                  <Col key={index} span={24} sm={12} md={6}>
-                    <Card hoverable cover={<img alt={item.title} src={item.coverUrl} />}>
-                      <Meta title={item.title} description={item.desc} />
-                      <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round">
-                        <span>Add to cart</span>
-                      </button>
-                    </Card>
-                  </Col>
-                );
-              })}
-            {/* {books.length === 0 && (
-              <div className="col-12">
-                <div className="alert alert-info text-center">No item found</div>
+                <MiniCart />
               </div>
-            )} */}
-          </Row>
+            </div>
+          </nav>
+          <div className="container">
+            <Route path="/" exact>
+                <img className="d-block mx-auto mt-5 mw-100" src="https://hackernoon.com/hn-images/1*huCrw2ybIkyg6NzbhvrAeA.jpeg" />
+            </Route>
+            <Route path="/books" exact>
+                <Title level={2}>List Books - Ant Design</Title>
+                <Row gutter={30}>
+                  {books.length > 0 &&
+                    books.map((item, index) => {
+                      return (
+                        <Col key={index} span={24} sm={12} md={6}>
+                          <Card hoverable cover={<img alt={item.title} src={item.coverUrl} />}>
+                            <Meta title={item.title} description={item.desc} />
+                            <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round">
+                              <span>Add to cart</span>
+                            </button>
+                          </Card>
+                        </Col>
+                      );
+                    })}
+                </Row>
+            </Route>
+            <Route path="/login" exact>
+                <LoginForm />
+            </Route>
+          </div>
         </div>
-      </div>
+      </Router>
     );
   }
 }
