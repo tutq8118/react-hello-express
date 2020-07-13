@@ -15,6 +15,8 @@ import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap
 const { Meta } = Card;
 const { Title } = Typography;
 
+const defaultCoverUrl = 'https://res.cloudinary.com/tutq8118/image/upload/v1592319239/placeholder-book-cover-default_rkyvcu.png';
+
 const axios = require('axios').default;
 const REACT_APP_API_SERVER = process.env.REACT_APP_API_SERVER;
 function App(props) {
@@ -25,6 +27,7 @@ function App(props) {
   const [books, setBooks] = useState([]);
   const [allBooks, setAllBooks] = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  
 
   const toggle = () => setDropdownOpen((prevState) => !prevState);
 
@@ -102,12 +105,12 @@ function App(props) {
           </Route>
           <Route path="/books" exact>
             <Title level={2}>List Books - Ant Design</Title>
-            <Row gutter={30}>
+            <Row gutter={30} className="book-cards">
               {books.length > 0 &&
                 books.map((item, index) => {
                   return (
-                    <Col key={index} span={24} sm={12} md={6}>
-                      <Card hoverable cover={<img alt={item.title} src={item.coverUrl} />}>
+                    <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
+                      <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
                         <Meta title={item.title} description={item.desc} />
                         <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" data-id={item._id}>
                           <span>Add to cart</span>
