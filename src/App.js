@@ -3,14 +3,15 @@ import 'bootstrap/scss/bootstrap.scss';
 import 'antd/dist/antd.css';
 import './App.scss';
 
-import NavMenu from './components/NavMenu';
 import SearchBox from './components/SearchBox';
 import LoginForm from './components/LoginForm';
-import MiniCart from './components/MiniCart';
+import Pagination from './components/Pagination';
 
 import { Card, Row, Col, Alert, Typography } from 'antd';
 import { BrowserRouter as Router, Route, NavLink } from 'react-router-dom';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+
+const queryString = require('query-string');
 
 const { Meta } = Card;
 const { Title } = Typography;
@@ -19,6 +20,7 @@ const defaultCoverUrl = 'https://res.cloudinary.com/tutq8118/image/upload/v15923
 
 const axios = require('axios').default;
 const REACT_APP_API_SERVER = process.env.REACT_APP_API_SERVER;
+
 function App(props) {
   const inputSearchRef = useRef(null);
   const buttonElement = useRef(null);
@@ -27,20 +29,24 @@ function App(props) {
   const [books, setBooks] = useState([]);
   const [allBooks, setAllBooks] = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  
-
+  const [filter, setFilter] = useState({
+    page: 1,
+    limit: 8,
+  });
+  const [totalPage, setTotalPage] = useState(1)
+  const paramString = queryString.stringify(filter);
   const toggle = () => setDropdownOpen((prevState) => !prevState);
 
   useEffect(() => {
     axios
-      .get(`${REACT_APP_API_SERVER}api/books`)
+      .get(`${REACT_APP_API_SERVER}api/books?${paramString}`)
       .then((booksAPI) => {
-        setBooks(booksAPI.data);
-        setAllBooks(booksAPI.data);
+        setBooks(booksAPI.data.books);
+        setAllBooks(booksAPI.data.books);
+        setTotalPage(booksAPI.data.totalPage);
       })
       .catch((error) => console.log('fail to fetch data', error));
-    console.log('component did mount');
-  }, []);
+  }, [filter]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -53,6 +59,13 @@ function App(props) {
     });
     setBooks(filteredBooks);
   };
+
+  const handlePageChange = (page) => {
+    setFilter({
+      ...filter,
+      page: page
+    })
+  } 
 
   return (
     <Router>
@@ -103,6 +116,7 @@ function App(props) {
           <Route path="/" exact>
             <img className="d-block mx-auto mt-5 mw-100" src="https://hackernoon.com/hn-images/1*huCrw2ybIkyg6NzbhvrAeA.jpeg" />
           </Route>
+
           <Route path="/books" exact>
             <Title level={2}>List Books - Ant Design</Title>
             <Row gutter={30} className="book-cards">
@@ -120,7 +134,9 @@ function App(props) {
                   );
                 })}
             </Row>
+            <Pagination action={handlePageChange} totalPage={totalPage} />
           </Route>
+
           <Route path="/login" exact>
             <LoginForm />
           </Route>
