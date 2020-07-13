@@ -40,7 +40,7 @@
     &__cart {
         position: relative;
 
-        ul.dropdown-cart {
+        .dropdown-cart {
             min-width: 250px;
             border: 2px solid #343434;
             padding: 10px;
@@ -48,7 +48,7 @@
             left: auto;
             right: 0;
 
-            li {
+            > * {
                 .item {
                     display: block;
                     padding: 3px 10px;
