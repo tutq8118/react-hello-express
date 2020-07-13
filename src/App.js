@@ -60,10 +60,12 @@ function App(props) {
     setBooks(filteredBooks);
   };
 
-  const handlePageChange = (page) => {
+  const handlePageChange = (e) => {
+    e.preventDefault(e);
+    const index = e.target.getAttribute("data-index");
     setFilter({
       ...filter,
-      page: page
+      page: index
     })
   } 
 

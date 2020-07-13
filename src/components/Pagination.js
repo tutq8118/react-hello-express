@@ -1,13 +1,15 @@
 import React, { Component } from 'react';
 
 function Pagination (props) {
-  const {totalPage} = props;
+  const {totalPage, action} = props;
+  const items = [];
+  for (let number = 1; number <= totalPage; number++) {
+  items.push(<li key={number}  className="page-item"><a onClick={action} className="page-link" data-index={number}>{number}</a></li>)
+  }
   return (
     <div className="d-flex justify-content-center">
       <ul className="pagination text-center">
-        <li className="page-item"><a className="page-link" href="/books?page=1">1</a></li>
-        <li className="page-item"><a className="page-link" href="/books?page=2">2</a></li>
-        <li className="page-item"><a className="page-link" href="/books?page=3">3</a></li>
+         {items}
       </ul>
     </div>
   );
