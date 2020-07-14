@@ -28,18 +28,23 @@ function App(props) {
 
   const [books, setBooks] = useState([]);
   const [newestBooks, setNewestBooks] = useState([]);
-  const [resultBooks, setResultBooks] = useState([]);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [filteredBooks, setFilteredBooks] = useState([]);
   const [filter, setFilter] = useState({
     page: 1,
     limit: 8,
     q: ""
   });
-  const [totalPage, setTotalPage] = useState(1)
-  const paramString = queryString.stringify(filter);
+  const [staticInfo, setStaticInfo] = useState({
+    totalPage: 1,
+    fillteredTotalPage: 1,
+    fillteredAmount: 0,
+    totalAmount: 0
+  });
 
-  
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const toggle = () => setDropdownOpen((prevState) => !prevState);
+
+  const paramString = queryString.stringify(filter);
 
   useEffect(() => {
     axios
@@ -55,22 +60,16 @@ function App(props) {
       .get(`${REACT_APP_API_SERVER}api/books?${paramString}`)
       .then((booksAPI) => {
         setBooks(booksAPI.data.books);
-        setResultBooks(booksAPI.data.books);
-        setTotalPage(booksAPI.data.totalPage);
+        setFilteredBooks(booksAPI.data.filteredBooks);
+        setStaticInfo({
+          totalPage: booksAPI.data.totalPage,
+          fillteredTotalPage: booksAPI.data.fillteredTotalPage,
+          fillteredAmount: booksAPI.data.fillteredAmount,
+          totalAmount: booksAPI.data.totalAmount
+        })
       })
       .catch((error) => console.log('fail to fetch data', error));
   }, [filter]);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const q = inputSearchRef.current.value;
-    setFilter({
-      ...filter,
-      page: 1,
-      q: q
-    });
-    setTotalPage()
-  };
 
   const handlePageChange = (e) => {
     e.preventDefault(e);
@@ -81,22 +80,25 @@ function App(props) {
     })
   } 
 
-  function SearchButton() {
+  function FormSearch() {
     let history = useHistory();
-    function handleClick() {
-      history.push('/books');
+    function handleSearch(e) {
+      e.preventDefault();
+      history.push('/search');
       const q = inputSearchRef.current.value;
       setFilter({
-        ...filter,
-        page: 1,
         q: q,
       });
+      
     }
 
     return (
-      <button className="btn btn-primary" type="button" onClick={handleClick}>
-        Search
-      </button>
+      <form ref={formSearchRef} onSubmit={handleSearch}>
+        <div className="form-group">
+          <input ref={inputSearchRef} className="form-control" type="text" required name="q" placeholder="Type a book name..." />
+        </div>
+        <button className="btn btn-primary" type="submit">Search</button>
+      </form>
     );
   }
 
@@ -119,13 +121,7 @@ function App(props) {
                 </li>
               </ul>
               <SearchBox>
-                <form ref={formSearchRef} onSubmit={handleSearch}>
-                  <div className="form-group">
-                    <input ref={inputSearchRef} className="form-control" type="text" required name="q" placeholder="Type a book name..." />
-                  </div>
-                  {/* <button className="btn btn-primary">Search</button> */}
-                  <SearchButton />
-                </form>
+                <FormSearch />
               </SearchBox>
               <div className="navbar__login ml-lg-3">
                 <NavLink className="navbar__login-link" to="/login" exact>
@@ -167,7 +163,7 @@ function App(props) {
           </Route>
 
           <Route path="/books" exact>
-            <Title level={2}>All Books</Title>
+              <Title level={2}>{`All ${staticInfo.totalAmount} books`}</Title>
             <Row gutter={30} className="book-cards">
               {books.length > 0 &&
                 books.map((item, index) => {
@@ -183,7 +179,27 @@ function App(props) {
                   );
                 })}
             </Row>
-            <Pagination action={handlePageChange} totalPage={totalPage} />
+            {staticInfo.totalPage > 1 && <Pagination action={handlePageChange} totalPage={staticInfo.totalPage} />}
+          </Route>
+
+          <Route path="/search" exact>
+              <Title level={2}>{`${staticInfo.fillteredAmount} books found with "${filter.q}"`}</Title>
+            <Row gutter={30} className="book-cards">
+              {filteredBooks.length > 0 &&
+                filteredBooks.map((item, index) => {
+                  return (
+                    <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
+                      <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
+                        <Meta title={item.title} description={item.desc} />
+                        <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" data-id={item._id}>
+                          <span>Add to cart</span>
+                        </button>
+                      </Card>
+                    </Col>
+                  );
+                })}
+            </Row>
+            {staticInfo.fillteredTotalPage > 1 && <Pagination action={handlePageChange} totalPage={ staticInfo.fillteredTotalPage } />}
           </Route>
 
           <Route path="/login" exact>
