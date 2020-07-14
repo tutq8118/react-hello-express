@@ -8,7 +8,7 @@ import LoginForm from './components/LoginForm';
 import Pagination from './components/Pagination';
 
 import { Card, Row, Col, Alert, Typography } from 'antd';
-import { BrowserRouter as Router, Route, NavLink } from 'react-router-dom';
+import { BrowserRouter as Router, Route, NavLink, useHistory, useLocation } from 'react-router-dom';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 
 const queryString = require('query-string');
@@ -27,22 +27,35 @@ function App(props) {
   const formSearchRef = useRef(null);
 
   const [books, setBooks] = useState([]);
-  const [allBooks, setAllBooks] = useState([]);
+  const [newestBooks, setNewestBooks] = useState([]);
+  const [resultBooks, setResultBooks] = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [filter, setFilter] = useState({
     page: 1,
     limit: 8,
+    q: ""
   });
   const [totalPage, setTotalPage] = useState(1)
   const paramString = queryString.stringify(filter);
+
+  
   const toggle = () => setDropdownOpen((prevState) => !prevState);
 
+  useEffect(() => {
+    axios
+      .get(`${REACT_APP_API_SERVER}api/index`)
+      .then((booksAPI) => {
+        setNewestBooks(booksAPI.data.books);
+      })
+      .catch((error) => console.log('fail to fetch data', error));
+  }, []);
+  
   useEffect(() => {
     axios
       .get(`${REACT_APP_API_SERVER}api/books?${paramString}`)
       .then((booksAPI) => {
         setBooks(booksAPI.data.books);
-        setAllBooks(booksAPI.data.books);
+        setResultBooks(booksAPI.data.books);
         setTotalPage(booksAPI.data.totalPage);
       })
       .catch((error) => console.log('fail to fetch data', error));
@@ -51,13 +64,12 @@ function App(props) {
   const handleSearch = (e) => {
     e.preventDefault();
     const q = inputSearchRef.current.value;
-    if (!allBooks) {
-      return;
-    }
-    const filteredBooks = allBooks.filter((item) => {
-      return item.title.toLowerCase().includes(q.toLowerCase()) === true;
+    setFilter({
+      ...filter,
+      page: 1,
+      q: q
     });
-    setBooks(filteredBooks);
+    setTotalPage()
   };
 
   const handlePageChange = (e) => {
@@ -68,6 +80,25 @@ function App(props) {
       page: index
     })
   } 
+
+  function SearchButton() {
+    let history = useHistory();
+    function handleClick() {
+      history.push('/books');
+      const q = inputSearchRef.current.value;
+      setFilter({
+        ...filter,
+        page: 1,
+        q: q,
+      });
+    }
+
+    return (
+      <button className="btn btn-primary" type="button" onClick={handleClick}>
+        Search
+      </button>
+    );
+  }
 
   return (
     <Router>
@@ -92,7 +123,8 @@ function App(props) {
                   <div className="form-group">
                     <input ref={inputSearchRef} className="form-control" type="text" required name="q" placeholder="Type a book name..." />
                   </div>
-                  <button className="btn btn-primary">Search</button>
+                  {/* <button className="btn btn-primary">Search</button> */}
+                  <SearchButton />
                 </form>
               </SearchBox>
               <div className="navbar__login ml-lg-3">
@@ -116,11 +148,26 @@ function App(props) {
         </nav>
         <div className="container">
           <Route path="/" exact>
-            <img className="d-block mx-auto mt-5 mw-100" src="https://hackernoon.com/hn-images/1*huCrw2ybIkyg6NzbhvrAeA.jpeg" />
+            <Title level={2}>Newest Books</Title>
+            <Row gutter={30} className="book-cards">
+              {newestBooks.length > 0 &&
+                newestBooks.map((item, index) => {
+                  return (
+                    <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
+                      <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
+                        <Meta title={item.title} description={item.desc} />
+                        <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" data-id={item._id}>
+                          <span>Add to cart</span>
+                        </button>
+                      </Card>
+                    </Col>
+                  );
+                })}
+            </Row>
           </Route>
 
           <Route path="/books" exact>
-            <Title level={2}>List Books - Ant Design</Title>
+            <Title level={2}>All Books</Title>
             <Row gutter={30} className="book-cards">
               {books.length > 0 &&
                 books.map((item, index) => {
@@ -143,6 +190,13 @@ function App(props) {
             <LoginForm />
           </Route>
         </div>
+        <footer className="footer mt-auto py-3">
+          <div className="container">
+            <div className="row">
+              <div className="col-12 text-center">Lorem ipsum dolor 2020.</div>
+            </div>
+          </div>
+        </footer>
       </div>
     </Router>
   );
