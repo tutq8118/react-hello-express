@@ -88,7 +88,7 @@ function App(props) {
     })
   } 
   function CartItem() {
-    const totalCart = useContext(CartContext).CartItem;
+    const totalCart = useContext(CartContext).cartItems;
     return (
       <>
         <span>Cart</span>
@@ -147,14 +147,30 @@ function App(props) {
                   </NavLink>
                 </div>
                 <div className="navbar__cart ml-lg-3">
-                  <Dropdown isOpen={dropdownOpen} toggle={toggle}>
-                    <DropdownToggle caret tag="div" className="navbar__login-link">
-                        <CartItem />
-                    </DropdownToggle>
-                    <DropdownMenu right className="dropdown-cart">
-                      <p>Your cart is empty</p>
-                    </DropdownMenu>
-                  </Dropdown>
+                  <CartContext.Consumer>
+                    {(cart) => (
+                      <Dropdown isOpen={dropdownOpen} toggle={toggle}>
+                        <DropdownToggle caret tag="div" className="navbar__login-link">
+                          <span>Cart </span>
+                          <span>({cart.cartItems.reduce((total, el) => {return total + el.qty}, 0)})</span>
+                        </DropdownToggle>
+                        <DropdownMenu right className="dropdown-cart" tag="ul">
+                          {cart.cartItems.length === 0 && <p>Your cart is empty</p>}
+                          {cart.cartItems.length > 0 && (cart.cartItems.map((item, index) => { return(
+                            <DropdownItem key={index} tag="li">
+                              <span className="item">
+                                <span className="item-info">
+                                  <span className="item-title">{item.title}</span>
+                                  <span className="item-qty">{item.qty}</span>
+                                </span>
+                              </span>
+                            </DropdownItem>)
+                          })
+                          )}
+                        </DropdownMenu>
+                      </Dropdown>
+                    )}
+                  </CartContext.Consumer>
                 </div>
               </div>
             </div>
@@ -169,9 +185,13 @@ function App(props) {
                       <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
                         <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
                           <Meta title={item.title} description={item.desc} />
-                          <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" data-id={item._id}>
-                            <span>Add to cart</span>
-                          </button>
+                          <CartContext.Consumer>
+                            {(cart) => (
+                              <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" onClick={() => cart.addToCart(item)}>
+                                <span>Add to cart</span>
+                              </button>
+                            )}
+                          </CartContext.Consumer>
                         </Card>
                       </Col>
                     );
@@ -180,7 +200,7 @@ function App(props) {
             </Route>
 
             <Route path="/books" exact>
-                <Title level={2}>{`All ${staticInfo.totalAmount} books`}</Title>
+              <Title level={2}>{`All ${staticInfo.totalAmount} books`}</Title>
               <Row gutter={30} className="book-cards">
                 {books.length > 0 &&
                   books.map((item, index) => {
@@ -188,9 +208,13 @@ function App(props) {
                       <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
                         <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
                           <Meta title={item.title} description={item.desc} />
-                          <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" data-id={item._id}>
-                            <span>Add to cart</span>
-                          </button>
+                          <CartContext.Consumer>
+                            {(cart) => (
+                              <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" onClick={() => cart.addToCart(item)}>
+                                <span>Add to cart</span>
+                              </button>
+                            )}
+                          </CartContext.Consumer>
                         </Card>
                       </Col>
                     );
@@ -200,7 +224,7 @@ function App(props) {
             </Route>
 
             <Route path="/search" exact>
-                <Title level={2}>{`${staticInfo.fillteredAmount} books found with "${filter.q}"`}</Title>
+              <Title level={2}>{`${staticInfo.fillteredAmount} books found`}</Title>
               <Row gutter={30} className="book-cards">
                 {filteredBooks.length > 0 &&
                   filteredBooks.map((item, index) => {
@@ -208,15 +232,19 @@ function App(props) {
                       <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
                         <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
                           <Meta title={item.title} description={item.desc} />
-                          <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" data-id={item._id}>
-                            <span>Add to cart</span>
-                          </button>
+                          <CartContext.Consumer>
+                            {(cart) => (
+                              <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" onClick={() => cart.addToCart(item)}>
+                                <span>Add to cart</span>
+                              </button>
+                            )}
+                          </CartContext.Consumer>
                         </Card>
                       </Col>
                     );
                   })}
               </Row>
-              {staticInfo.fillteredTotalPage > 1 && <Pagination action={handlePageChange} totalPage={ staticInfo.fillteredTotalPage } />}
+              {staticInfo.fillteredTotalPage > 1 && <Pagination action={handlePageChange} totalPage={staticInfo.fillteredTotalPage} />}
             </Route>
 
             <Route path="/login" exact>
