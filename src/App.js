@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import 'bootstrap/scss/bootstrap.scss';
 import 'antd/dist/antd.css';
 import './App.scss';
@@ -7,9 +7,12 @@ import SearchBox from './components/SearchBox';
 import LoginForm from './components/LoginForm';
 import Pagination from './components/Pagination';
 
+import CartProvider, {CartContext} from './contexts/Cart';
+
 import { Card, Row, Col, Alert, Typography } from 'antd';
 import { BrowserRouter as Router, Route, NavLink, useHistory, useLocation } from 'react-router-dom';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import { useCookies } from 'react-cookie';
 
 const queryString = require('query-string');
 
@@ -40,6 +43,11 @@ function App(props) {
     fillteredAmount: 0,
     totalAmount: 0
   });
+
+  const DemoContext = React.createContext();
+  const valueCartContext = React.useContext(CartContext);
+
+  const [cookies, setCookie, removeCookie] = useCookies(['sessionId']);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const toggle = () => setDropdownOpen((prevState) => !prevState);
@@ -79,8 +87,17 @@ function App(props) {
       page: index
     })
   } 
-
+  function CartItem() {
+    const totalCart = useContext(CartContext).CartItem;
+    return (
+      <>
+        <span>Cart</span>
+        <span>{totalCart.length}</span>
+      </>
+    )
+  }
   function FormSearch() {
+    
     let history = useHistory();
     function handleSearch(e) {
       e.preventDefault();
@@ -104,116 +121,117 @@ function App(props) {
 
   return (
     <Router>
-      <div className="App">
-        <nav className="navbar navbar-expand-lg navbar-light bg-light mb-3">
-          <div className="container">
-            <h1 className="h2">
-              <NavLink className="navbar-brand" to="/" exact>
-                HelloExpress
-              </NavLink>
-            </h1>
-            <div className="collapse navbar-collapse justify-content-between">
-              <ul className="navbar-nav flex-grow-1">
-                <li className="nav-item">
-                  <NavLink className="nav-link" to="/books" exact>
-                    Books
-                  </NavLink>
-                </li>
-              </ul>
-              <SearchBox>
-                <FormSearch />
-              </SearchBox>
-              <div className="navbar__login ml-lg-3">
-                <NavLink className="navbar__login-link" to="/login" exact>
-                  Login
+      <CartProvider>
+        <div className="App">
+          <nav className="navbar navbar-expand-lg navbar-light bg-light mb-3">
+            <div className="container">
+              <h1 className="h2">
+                <NavLink className="navbar-brand" to="/" exact>
+                  HelloExpress
                 </NavLink>
-              </div>
-              <div className="navbar__cart ml-lg-3">
-                <Dropdown isOpen={dropdownOpen} toggle={toggle}>
-                  <DropdownToggle caret tag="div" className="navbar__login-link">
-                    <span>Cart</span>
-                    <span>0</span>
-                  </DropdownToggle>
-                  <DropdownMenu right className="dropdown-cart">
-                    <p>Your cart is empty</p>
-                  </DropdownMenu>
-                </Dropdown>
+              </h1>
+              <div className="collapse navbar-collapse justify-content-between">
+                <ul className="navbar-nav flex-grow-1">
+                  <li className="nav-item">
+                    <NavLink className="nav-link" to="/books" exact>
+                      Books
+                    </NavLink>
+                  </li>
+                </ul>
+                <SearchBox>
+                  <FormSearch />
+                </SearchBox>
+                <div className="navbar__login ml-lg-3">
+                  <NavLink className="navbar__login-link" to="/login" exact>
+                    Login
+                  </NavLink>
+                </div>
+                <div className="navbar__cart ml-lg-3">
+                  <Dropdown isOpen={dropdownOpen} toggle={toggle}>
+                    <DropdownToggle caret tag="div" className="navbar__login-link">
+                        <CartItem />
+                    </DropdownToggle>
+                    <DropdownMenu right className="dropdown-cart">
+                      <p>Your cart is empty</p>
+                    </DropdownMenu>
+                  </Dropdown>
+                </div>
               </div>
             </div>
-          </div>
-        </nav>
-        <div className="container">
-          <Route path="/" exact>
-            <Title level={2}>Newest Books</Title>
-            <Row gutter={30} className="book-cards">
-              {newestBooks.length > 0 &&
-                newestBooks.map((item, index) => {
-                  return (
-                    <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
-                      <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
-                        <Meta title={item.title} description={item.desc} />
-                        <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" data-id={item._id}>
-                          <span>Add to cart</span>
-                        </button>
-                      </Card>
-                    </Col>
-                  );
-                })}
-            </Row>
-          </Route>
-
-          <Route path="/books" exact>
-              <Title level={2}>{`All ${staticInfo.totalAmount} books`}</Title>
-            <Row gutter={30} className="book-cards">
-              {books.length > 0 &&
-                books.map((item, index) => {
-                  return (
-                    <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
-                      <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
-                        <Meta title={item.title} description={item.desc} />
-                        <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" data-id={item._id}>
-                          <span>Add to cart</span>
-                        </button>
-                      </Card>
-                    </Col>
-                  );
-                })}
-            </Row>
-            {staticInfo.totalPage > 1 && <Pagination action={handlePageChange} totalPage={staticInfo.totalPage} />}
-          </Route>
-
-          <Route path="/search" exact>
-              <Title level={2}>{`${staticInfo.fillteredAmount} books found with "${filter.q}"`}</Title>
-            <Row gutter={30} className="book-cards">
-              {filteredBooks.length > 0 &&
-                filteredBooks.map((item, index) => {
-                  return (
-                    <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
-                      <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
-                        <Meta title={item.title} description={item.desc} />
-                        <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" data-id={item._id}>
-                          <span>Add to cart</span>
-                        </button>
-                      </Card>
-                    </Col>
-                  );
-                })}
-            </Row>
-            {staticInfo.fillteredTotalPage > 1 && <Pagination action={handlePageChange} totalPage={ staticInfo.fillteredTotalPage } />}
-          </Route>
-
-          <Route path="/login" exact>
-            <LoginForm />
-          </Route>
-        </div>
-        <footer className="footer mt-auto py-3">
+          </nav>
           <div className="container">
-            <div className="row">
-              <div className="col-12 text-center">Lorem ipsum dolor 2020.</div>
-            </div>
+            <Route path="/" exact>
+              <Title level={2}>Newest Books</Title>
+              <Row gutter={30} className="book-cards">
+                {newestBooks.length > 0 &&
+                  newestBooks.map((item, index) => {
+                    return (
+                      <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
+                        <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
+                          <Meta title={item.title} description={item.desc} />
+                          <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" data-id={item._id}>
+                            <span>Add to cart</span>
+                          </button>
+                        </Card>
+                      </Col>
+                    );
+                  })}
+              </Row>
+            </Route>
+
+            <Route path="/books" exact>
+                <Title level={2}>{`All ${staticInfo.totalAmount} books`}</Title>
+              <Row gutter={30} className="book-cards">
+                {books.length > 0 &&
+                  books.map((item, index) => {
+                    return (
+                      <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
+                        <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
+                          <Meta title={item.title} description={item.desc} />
+                          <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" data-id={item._id}>
+                            <span>Add to cart</span>
+                          </button>
+                        </Card>
+                      </Col>
+                    );
+                  })}
+              </Row>
+              {staticInfo.totalPage > 1 && <Pagination action={handlePageChange} totalPage={staticInfo.totalPage} />}
+            </Route>
+
+            <Route path="/search" exact>
+                <Title level={2}>{`${staticInfo.fillteredAmount} books found with "${filter.q}"`}</Title>
+              <Row gutter={30} className="book-cards">
+                {filteredBooks.length > 0 &&
+                  filteredBooks.map((item, index) => {
+                    return (
+                      <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
+                        <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
+                          <Meta title={item.title} description={item.desc} />
+                          <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" data-id={item._id}>
+                            <span>Add to cart</span>
+                          </button>
+                        </Card>
+                      </Col>
+                    );
+                  })}
+              </Row>
+              {staticInfo.fillteredTotalPage > 1 && <Pagination action={handlePageChange} totalPage={ staticInfo.fillteredTotalPage } />}
+            </Route>
+
+            <Route path="/login" exact>
+              <LoginForm />
+            </Route>
           </div>
-        </footer>
-      </div>
+          <footer className="footer mt-auto py-3">
+            <div className="container">
+              <div className="row">
+                <div className="col-12 text-center">Lorem ipsum dolor 2020.</div>
+              </div>
+            </div>
+          </footer>
+        </div>
+      </CartProvider>
     </Router>
   );
 }
