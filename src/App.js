@@ -11,7 +11,7 @@ import CartProvider, {CartContext} from './contexts/Cart';
 
 import { Card, Row, Col, Alert, Typography } from 'antd';
 import { BrowserRouter as Router, Route, NavLink, useHistory, useLocation } from 'react-router-dom';
-import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, NavbarToggler } from 'reactstrap';
 import { useCookies } from 'react-cookie';
 
 const queryString = require('query-string');
@@ -44,13 +44,13 @@ function App(props) {
     totalAmount: 0
   });
 
-  const DemoContext = React.createContext();
-  const valueCartContext = React.useContext(CartContext);
-
   const [cookies, setCookie, removeCookie] = useCookies(['sessionId']);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const toggle = () => setDropdownOpen((prevState) => !prevState);
+
+  const [ToggleNavMenu, setToggleNavMenu] = useState(false);
+  const toggle2 = () => setToggleNavMenu((prevState) => !prevState);
 
   const paramString = queryString.stringify(filter);
 
@@ -87,15 +87,7 @@ function App(props) {
       page: index
     })
   } 
-  function CartItem() {
-    const totalCart = useContext(CartContext).cartItems;
-    return (
-      <>
-        <span>Cart</span>
-        <span>{totalCart.length}</span>
-      </>
-    )
-  }
+ 
   function FormSearch() {
     
     let history = useHistory();
@@ -130,6 +122,7 @@ function App(props) {
                   HelloExpress
                 </NavLink>
               </h1>
+              <NavbarToggler onClick={toggle2} />
               <div className="collapse navbar-collapse justify-content-between">
                 <ul className="navbar-nav flex-grow-1">
                   <li className="nav-item">
@@ -152,20 +145,33 @@ function App(props) {
                       <Dropdown isOpen={dropdownOpen} toggle={toggle}>
                         <DropdownToggle caret tag="div" className="navbar__login-link">
                           <span>Cart </span>
-                          <span>({cart.cartItems.reduce((total, el) => {return total + el.qty}, 0)})</span>
+                          <span>
+                            (
+                            {cart.cartItems.reduce((total, el) => {
+                              return total + el.qty;
+                            }, 0)}
+                            )
+                          </span>
                         </DropdownToggle>
                         <DropdownMenu right className="dropdown-cart" tag="ul">
                           {cart.cartItems.length === 0 && <p>Your cart is empty</p>}
-                          {cart.cartItems.length > 0 && (cart.cartItems.map((item, index) => { return(
-                            <DropdownItem key={index} tag="li">
-                              <span className="item">
-                                <span className="item-info">
-                                  <span className="item-title">{item.title}</span>
-                                  <span className="item-qty">{item.qty}</span>
-                                </span>
-                              </span>
-                            </DropdownItem>)
-                          })
+                          {cart.cartItems.length > 0 &&
+                            cart.cartItems.map((item, index) => {
+                              return (
+                                <DropdownItem key={index} tag="li">
+                                  <span className="item">
+                                    <span className="item-info">
+                                      <span className="item-title">{item.title}</span>
+                                      <span className="item-qty">{item.qty}</span>
+                                    </span>
+                                  </span>
+                                </DropdownItem>
+                              );
+                            })}
+                          {cart.cartItems.length > 0 && (
+                            <li className="text-right">
+                              <button>Checkout</button>
+                            </li>
                           )}
                         </DropdownMenu>
                       </Dropdown>
