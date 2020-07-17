@@ -1,3 +1,14 @@
+#root, 
+.App {
+    height: 100vh;
+    max-height: 100vh;
+
+    .main {
+        min-height: calc(100% - 16px - 65px - 54px);
+        
+    }
+}
+
 .list-group-item.text-muted {
     > p {
         text-decoration: line-through;
@@ -39,6 +50,8 @@
 .navbar {
     &__cart {
         position: relative;
+        color: #1890ff;
+        cursor: pointer;
 
         .dropdown-cart {
             min-width: 250px;

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 
 function Pagination (props) {
   const {totalPage, action} = props;
