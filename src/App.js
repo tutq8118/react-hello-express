@@ -6,6 +6,7 @@ import './App.scss';
 import SearchBox from './components/SearchBox';
 import LoginForm from './components/LoginForm';
 import Pagination from './components/Pagination';
+import Preloading from './components/Preloading';
 
 import CartProvider, {CartContext} from './contexts/Cart';
 
@@ -33,6 +34,7 @@ function App(props) {
   // Hooks
 
   const [books, setBooks] = useState([]);
+  const [isLoading, setLoading] = useState(true);
   const [newestBooks, setNewestBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [filter, setFilter] = useState({
@@ -64,6 +66,7 @@ function App(props) {
       .get(`${REACT_APP_API_SERVER}api/index`)
       .then((api) => {
         setNewestBooks(api.data.books);
+        setTimeout(setLoading(false), 500);
       })
       .catch((error) => console.log('fail to fetch data', error));
   }, []);
@@ -71,7 +74,7 @@ function App(props) {
   useEffect(() => {
     axios
       .get(`${REACT_APP_API_SERVER}api/books?${paramString}`)
-      .then((api) => {
+      .then((api) => {        
         setBooks(api.data.books);
         setFilteredBooks(api.data.filteredBooks);
         setStaticInfo({
@@ -79,7 +82,8 @@ function App(props) {
           fillteredTotalPage: api.data.fillteredTotalPage,
           fillteredAmount: api.data.fillteredAmount,
           totalAmount: api.data.totalAmount
-        })
+        });
+        setTimeout(setLoading(false), 5000);
       })
       .catch((error) => console.log('fail to fetch data', error));
   }, [filter]);
@@ -213,50 +217,60 @@ function App(props) {
           <main className="main">
             <div className="container">
               <Route path="/" exact>
-                <Title level={2}>Newest Books</Title>
-                <Row gutter={30} className="book-cards">
-                  {newestBooks.length > 0 &&
-                    newestBooks.map((item, index) => {
-                      return (
-                        <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
-                          <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
-                            <Meta title={item.title} description={item.desc} />
-                            <CartContext.Consumer>
-                              {(cart) => (
-                                <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" onClick={() => cart.addToCart(item)}>
-                                  <span>Add to cart</span>
-                                </button>
-                              )}
-                            </CartContext.Consumer>
-                          </Card>
-                        </Col>
-                      );
-                    })}
-                </Row>
+                {isLoading && <Preloading />}
+                {!isLoading && (
+                  <>
+                    <Title level={2}>Newest Books</Title>
+                    <Row gutter={30} className="book-cards">
+                      {newestBooks.length > 0 &&
+                        newestBooks.map((item, index) => {
+                          return (
+                            <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
+                              <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
+                                <Meta title={item.title} description={item.desc} />
+                                <CartContext.Consumer>
+                                  {(cart) => (
+                                    <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" onClick={() => cart.addToCart(item)}>
+                                      <span>Add to cart</span>
+                                    </button>
+                                  )}
+                                </CartContext.Consumer>
+                              </Card>
+                            </Col>
+                          );
+                        })}
+                    </Row>
+                  </>
+                )}
               </Route>
 
               <Route path="/books" exact>
-                <Title level={2}>{`All ${staticInfo.totalAmount} books`}</Title>
-                <Row gutter={30} className="book-cards">
-                  {books.length > 0 &&
-                    books.map((item, index) => {
-                      return (
-                        <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
-                          <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
-                            <Meta title={item.title} description={item.desc} />
-                            <CartContext.Consumer>
-                              {(cart) => (
-                                <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" onClick={() => cart.addToCart(item)}>
-                                  <span>Add to cart</span>
-                                </button>
-                              )}
-                            </CartContext.Consumer>
-                          </Card>
-                        </Col>
-                      );
-                    })}
-                </Row>
-                {staticInfo.totalPage > 1 && <Pagination action={handlePageChange} totalPage={staticInfo.totalPage} />}
+                {isLoading && <Preloading />}
+                {!isLoading && (
+                  <>
+                    <Title level={2}>{`All ${staticInfo.totalAmount} books`}</Title>
+                    <Row gutter={30} className="book-cards">
+                      {books.length > 0 &&
+                        books.map((item, index) => {
+                          return (
+                            <Col key={index} span={24} sm={12} md={6} className="book-cards__item mb-4">
+                              <Card hoverable className="" cover={<img alt={item.title} src={item.coverUrl ? item.coverUrl : defaultCoverUrl} />}>
+                                <Meta title={item.title} description={item.desc} />
+                                <CartContext.Consumer>
+                                  {(cart) => (
+                                    <button type="button" className="ant-btn mt-2 ant-btn-primary ant-btn-round" onClick={() => cart.addToCart(item)}>
+                                      <span>Add to cart</span>
+                                    </button>
+                                  )}
+                                </CartContext.Consumer>
+                              </Card>
+                            </Col>
+                          );
+                        })}
+                    </Row>
+                    {staticInfo.totalPage > 1 && <Pagination action={handlePageChange} totalPage={staticInfo.totalPage} />}
+                  </>
+                )}
               </Route>
 
               <Route path="/search" exact>
