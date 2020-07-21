@@ -1,8 +1,17 @@
 import React from 'react';
+import { Alert } from 'antd';
 
 function LoginForm(props) {
+  const {formLogin} = props;  
   return (
     <div className="row">
+      {formLogin.errors && (
+        <div className="col-12 mb-3">
+          {formLogin.errors.map((error, index) => (
+          <Alert message={error} key={index} type="error" />
+          ))}
+        </div>
+      )}
       <div className="col-sm-6">
         <h2 className="mb-3">Login</h2>
         <p className="mb-3">If you've already had an account, just login</p>

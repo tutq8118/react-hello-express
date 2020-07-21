@@ -49,7 +49,7 @@ function App(props) {
     totalAmount: 0
   });
 
-  const [formLogin, setFormLogin] = useState("");
+  const [formLogin, setFormLogin] = useState({});
 
   const [cookies, setCookie, removeCookie] = useCookies(['sessionId']);
 
@@ -116,7 +116,16 @@ function App(props) {
     axios
       .post(`${REACT_APP_API_SERVER}api/auth/login`, qs.stringify(requestBody), config)
       .then(function (response) {
-        console.log('response:', response);
+        if (response.data.errors) {
+          setFormLogin({
+            errors: response.data.errors,
+          });
+        }
+        if (response.data.email) {
+          setFormLogin({
+            email: response.data.email,
+          });
+        }
       })
       .catch(function (error) {
         console.log('error:', error);
@@ -298,7 +307,7 @@ function App(props) {
               </Route>
 
               <Route path="/login" exact>
-                <LoginForm action={handleLoginForm} />
+                <LoginForm formLogin={formLogin} action={handleLoginForm} />
               </Route>
             </div>
           </main>
